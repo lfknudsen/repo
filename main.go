@@ -25,10 +25,13 @@ var createCodeberg = exec.Command("fj", "repo", "create", "--private", "--remote
 // createGitHub returns a command  to create a new remote repository hosted on GitHub.com
 var createGitHub = exec.Command("gh", "repo", "create", currentDir(), "--private", "--remote", "backup2")
 
+// authGitLab returns the command to authenticate the GitLab CLI.
 var authGitLab = exec.Command("glab", "auth", "login")
 
+// authCodeberg returns the command to authenticate the Forgejo CLI.
 var authCodeberg = exec.Command("fj", "auth", "login", "--host", "codeberg.org")
 
+// authGitHub returns the command to authenticate the GitHub CLI.
 var authGitHub = exec.Command("gh", "auth", "login")
 
 func execute(cmd *exec.Cmd) {
@@ -55,14 +58,26 @@ func create() {
 	execute(createGitHub)
 }
 
+const version = "1.0.0"
+
+func printHelp() {
+	fmt.Printf("REPO v%s\nRepository Creation Utility\n\n"+
+		"Usage:\n"+
+		"  repo create\n"+
+		"    Creates a new repository on GitLab, Codeberg, and GitHub in that order.\n"+
+		"  repo auth\n"+
+		"    Authenticates the CLI utilities to allow the management of repositories.\n"+
+		"    This will require you to log in to GitLab, Codeberg, and GitHub in that order.\n"+
+		"    If you've never used the hosts' CLI programmes before, you will have to do this\n"+
+		"    first. This only needs to be done once.\n"+
+		"  repo [-h|--help]\n"+
+		"    Print this help message and exit.\n", version)
+}
+
 func main() {
 	args := os.Args[1:]
 	if len(args) == 0 {
-		fmt.Println("Usage:\n $ repo create\n" +
-			"Creates a new repository on GitLab, Codeberg, and GitHub in that order.\n" +
-			" $ repo auth\n" +
-			"Authenticates the CLI utilities to allow the management of repositories.\n" +
-			"This will require you to log in to GitLab, Codeberg, and GitHub in that order.")
+		printHelp()
 		os.Exit(1)
 	}
 
@@ -77,7 +92,7 @@ func main() {
 	}
 
 	if args[0] == "-h" || args[0] == "--help" {
-		fmt.Println("Usage: repo new")
+		printHelp()
 		os.Exit(0)
 	}
 
