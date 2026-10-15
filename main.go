@@ -17,13 +17,13 @@ func currentDir() string {
 }
 
 // createGitLab returns a command  to create a new remote repository hosted on gitlab.com
-var createGitLab = exec.Command("glab", "repo", "create", "--private")
+var createGitLab = exec.Command("glab", "repo", "create", "--remote", "origin", "--private")
 
 // createCodeberg returns a command  to create a new remote repository hosted on Codeberg.org
-var createCodeberg = exec.Command("fj", "repo", "create", "--private", "--host", "codeberg.org", currentDir())
+var createCodeberg = exec.Command("fj", "repo", "create", "--private", "--remote", "backup1", "--host", "codeberg.org", currentDir())
 
 // createGitHub returns a command  to create a new remote repository hosted on GitHub.com
-var createGitHub = exec.Command("gh", "repo", "create", currentDir(), "--private")
+var createGitHub = exec.Command("gh", "repo", "create", currentDir(), "--private", "--remote", "backup2")
 
 var authGitLab = exec.Command("glab", "auth", "login")
 
