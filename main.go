@@ -194,7 +194,7 @@ const version = "1.4.0"
 func printHelp() {
 	fmt.Printf("REPO v%s\nRepository Creation Utility\n\n"+
 		"Usage:\n"+
-		"  repo create\n"+
+		"  repo create [--skip <host>]\n"+
 		"    Creates a new repository on GitLab, Codeberg, and GitHub in that order.\n"+
 		"    The URL will be https://<host>/<your username>/<this directory>\n"+
 		"  repo auth\n"+
@@ -214,6 +214,16 @@ func printHelp() {
 		"  repo [-h|--help]\n"+
 		"    Print this help message and exit.\n",
 		version)
+}
+
+func skipHost(host string) error {
+	idx := slices.Index(hosts, host)
+	if idx == -1 {
+		return errors.New("host not found")
+	}
+	slices.Delete(hosts, idx, idx+1)
+	slices.Delete(remotes, idx, idx+1)
+	return nil
 }
 
 func main() {
@@ -269,6 +279,19 @@ func main() {
 	}
 
 	if args[0] == "create" {
+		args = args[1:]
+		for len(args) >= 2 {
+			if args[0] != "--skip" {
+				printHelp()
+				os.Exit(1)
+			}
+			err = skipHost(args[1])
+			if err != nil {
+				_, _ = fmt.Fprintln(os.Stderr, err)
+				os.Exit(1)
+			}
+			args = args[2:]
+		}
 		create()
 		os.Exit(0)
 	}
