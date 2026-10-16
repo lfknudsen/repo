@@ -18,7 +18,7 @@ func getCurrentDir() string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	return filepath.Base(filepath.Dir(dir))
+	return filepath.Base(dir)
 }
 
 var currentDir = getCurrentDir()
