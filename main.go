@@ -12,13 +12,15 @@ import (
 	"strings"
 )
 
-func currentDir() string {
+func getCurrentDir() string {
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Fatal(err)
 	}
 	return filepath.Base(filepath.Dir(dir))
 }
+
+var currentDir = getCurrentDir()
 
 func getConfigFilePath() string {
 	path, err := os.Executable()
@@ -126,10 +128,10 @@ func getRemoteName(host string) string {
 var createGitLab = exec.Command("glab", "repo", "create", "--private")
 
 // createCodeberg returns a command  to create a new remote repository hosted on Codeberg.org
-var createCodeberg = exec.Command("fj", "repo", "create", "--private", "--host", "codeberg.org", currentDir())
+var createCodeberg = exec.Command("fj", "repo", "create", "--private", "--host", "codeberg.org", currentDir)
 
 // createGitHub returns a command  to create a new remote repository hosted on GitHub.com
-var createGitHub = exec.Command("gh", "repo", "create", currentDir(), "--private")
+var createGitHub = exec.Command("gh", "repo", "create", currentDir, "--private")
 
 // authGitLab returns the command to authenticate the GitLab CLI.
 var authGitLab = exec.Command("glab", "auth", "login")
