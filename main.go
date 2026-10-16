@@ -165,7 +165,7 @@ func create() {
 	}
 	if slices.Contains(hosts, "github") {
 		cmd := createGitHub
-		cmd.Args = append(cmd.Args, "--remote", getRemoteName("github"))
+		cmd.Args = append(cmd.Args, "--remote", getRemoteName("github"), "--source", ".")
 		execute(cmd)
 	}
 }
