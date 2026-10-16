@@ -29,22 +29,36 @@ func getConfigFilePath() string {
 	return filepath.Join(filepath.Dir(path), ".repo.csv")
 }
 
+var configPath = getConfigFilePath()
+
 var rxHost = regexp.MustCompile(`(?:https?://)?(?:www\.)?([^.]+)[^,]*,(.+)`)
 
 const defaultHostFileContent = "HOST NAME,REMOTE NAME\ngitlab,origin\ncodeberg,backup1\ngithub,backup2"
 
-func getHosts() (hosts []string, remotes []string) {
-	configFilename := getConfigFilePath()
-	// Start by creating and initialising the config file if it doesn't exist already.
-	f, err := os.OpenFile(configFilename, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0666)
+func reinitHostFile() {
+	f, err := os.OpenFile(configPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
 	if err == nil {
 		wr := bufio.NewWriter(f)
 		_, _ = wr.WriteString(defaultHostFileContent)
 		_ = wr.Flush()
 		_ = f.Close()
 	}
+}
 
-	f, err = os.OpenFile(configFilename, os.O_RDONLY, 0666)
+func initHostFile() {
+	f, err := os.OpenFile(configPath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0666)
+	if err == nil {
+		wr := bufio.NewWriter(f)
+		_, _ = wr.WriteString(defaultHostFileContent)
+		_ = wr.Flush()
+		_ = f.Close()
+	}
+}
+
+func getHosts() (hosts []string, remotes []string) {
+	// Start by creating and initialising the config file if it doesn't exist already.
+	initHostFile()
+	f, err := os.OpenFile(configPath, os.O_RDONLY, 0666)
 	if err != nil {
 		log.Println(err)
 		return []string{}, []string{}
@@ -160,6 +174,9 @@ func printHelp() {
 		"    This will require you to log in to GitLab, Codeberg, and GitHub in that order.\n"+
 		"    If you've never used the hosts' CLI programmes before, you will have to do this\n"+
 		"    first. This only needs to be done once.\n"+
+		"  repo init\n"+
+		"    Re-initialises the file with the list of hosts and their remotes.\n"+
+		"    Prints the path to the file.\n"+
 		"  repo [-h|--help]\n"+
 		"    Print this help message and exit.\n",
 		version)
@@ -172,8 +189,14 @@ func main() {
 		os.Exit(1)
 	}
 
+	if args[0] == "init" {
+		reinitHostFile()
+		fmt.Println(configPath)
+		os.Exit(0)
+	}
+
 	if len(hosts) == 0 {
-		_, _ = fmt.Fprintf(os.Stderr, "No hosts specified in %s.\n", getConfigFilePath())
+		_, _ = fmt.Fprintf(os.Stderr, "No hosts specified in %s.\n", configPath)
 		printHelp()
 		os.Exit(1)
 	}
