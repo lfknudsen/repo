@@ -13,6 +13,27 @@ import (
 	"strings"
 )
 
+var dry = false
+
+func arg(params ...string) bool {
+	return slices.Contains(params, os.Args[0])
+}
+
+func next() {
+	os.Args = os.Args[1:]
+}
+
+func checkFlags() {
+	if arg("-d", "--dry") {
+		dry = true
+		next()
+	}
+	if arg("-h", "--help") {
+		printHelp()
+		os.Exit(0)
+	}
+}
+
 func getCurrentDir() string {
 	dir, err := os.Getwd()
 	if err != nil {
@@ -148,6 +169,11 @@ var authCodeberg = exec.Command("fj", "auth", "login", "--host", "codeberg.org")
 var authGitHub = exec.Command("gh", "auth", "login")
 
 func execute(cmd *exec.Cmd) {
+	if dry {
+		fmt.Printf("Dry run. Would have executed:\n  %s\n", strings.Join(cmd.Args, " "))
+		return
+	}
+
 	if _, err := os.Stat(cmd.Path); err != nil {
 		return
 	}
@@ -189,7 +215,7 @@ func auth() {
 	}
 }
 
-const version = "1.4.0"
+const version = "1.5.1"
 
 func printHelp() {
 	fmt.Printf("REPO v%s\nRepository Creation Utility\n\n"+
@@ -227,21 +253,21 @@ func skipHost(host string) error {
 }
 
 func main() {
-	args := os.Args[1:]
-	if len(args) == 0 {
+	next()
+	if len(os.Args) == 0 {
 		printHelp()
 		os.Exit(1)
 	}
 
-	if args[0] == "init" {
+	if arg("init") {
 		reinitHostFile()
 		fmt.Println(configPath)
 		os.Exit(0)
 	}
 
-	if args[0] == "config" {
-		if len(args) > 1 {
-			if args[1] == "path" {
+	if arg("config") {
+		if len(os.Args) > 1 {
+			if os.Args[1] == "path" {
 				fmt.Println(configPath)
 				os.Exit(0)
 			}
@@ -262,7 +288,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	if args[0] == "auth" {
+	checkFlags()
+
+	if arg("auth") {
 		auth()
 		os.Exit(0)
 	}
@@ -273,30 +301,32 @@ func main() {
 		os.Exit(1)
 	}
 
-	if args[0] == "-h" || args[0] == "--help" {
-		printHelp()
-		os.Exit(0)
-	}
+	checkFlags()
 
-	if args[0] == "create" {
-		args = args[1:]
-		for len(args) >= 2 {
-			if args[0] != "--skip" {
+	if arg("create") {
+		next()
+		checkFlags()
+		for len(os.Args) >= 2 {
+			checkFlags()
+
+			if os.Args[0] != "--skip" {
 				printHelp()
 				os.Exit(1)
 			}
-			err = skipHost(args[1])
+			err = skipHost(os.Args[1])
 			if err != nil {
 				_, _ = fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)
 			}
-			args = args[2:]
+			os.Args = os.Args[2:]
 		}
 		create()
 		os.Exit(0)
 	}
 
-	if args[0] == "hosts" {
+	if arg("hosts") {
 		printHosts()
 	}
+
+	checkFlags()
 }
