@@ -13,27 +13,45 @@ import (
 	"strings"
 )
 
+// dry indicates whether this should be a dry-run.
 var dry = false
 
+// arg returns true if the current command-line argument is equal to one of the given input params.
 func arg(params ...string) bool {
 	return slices.Contains(params, os.Args[0])
 }
 
+// next skips past the current command-line argument.
 func next() {
 	os.Args = os.Args[1:]
 }
 
+// checkFlags handles the boolean command-line argument flags.
 func checkFlags() {
-	if arg("-d", "--dry") {
+	var idx int
+	idx = slices.Index(os.Args, "-d")
+	if idx != -1 {
 		dry = true
-		next()
+		slices.Delete(os.Args, idx, idx+1)
 	}
-	if arg("-h", "--help") {
+	idx = slices.Index(os.Args, "--dry")
+	if idx != -1 {
+		dry = true
+		slices.Delete(os.Args, idx, idx+1)
+	}
+	idx = slices.Index(os.Args, "-h")
+	if idx != -1 {
+		printHelp()
+		os.Exit(0)
+	}
+	idx = slices.Index(os.Args, "--help")
+	if idx != -1 {
 		printHelp()
 		os.Exit(0)
 	}
 }
 
+// getCurrentDir returns the name of the current directory.
 func getCurrentDir() string {
 	dir, err := os.Getwd()
 	if err != nil {
@@ -42,8 +60,10 @@ func getCurrentDir() string {
 	return filepath.Base(dir)
 }
 
+// currentDir caches the result of getCurrentDir.
 var currentDir = getCurrentDir()
 
+// getConfigFilePath returns the absolute path to the file with the list of hosts and remotes.
 func getConfigFilePath() string {
 	path, err := os.Executable()
 	if err != nil {
@@ -53,12 +73,20 @@ func getConfigFilePath() string {
 	return filepath.Join(filepath.Dir(path), ".repo.csv")
 }
 
+// configPath caches the result of getConfigFilePath.
 var configPath = getConfigFilePath()
 
-var rxHost = regexp.MustCompile(`(?:https?://)?(?:www\.)?([^.]+)[^,]*,(.+)`)
+// rxHostRemote is used to parse and re-format the user-input hosts and remotes.
+var rxHostRemote = regexp.MustCompile(`(?:https?://)?(?:www\.)?([^.]+)[^,]*,(.+)`)
 
+// rxHost is used to parse and re-format a user-input host name.
+var rxHost = regexp.MustCompile(`(?:https?://)?(?:www\.)?([^.]+)`)
+
+// defaultHostFileContent contains the initial contents of the config file.
 const defaultHostFileContent = "HOST NAME,REMOTE NAME\ngitlab,origin\ncodeberg,backup1\ngithub,backup2"
 
+// reinitHostFile creates/truncates the config file and writes the default contents from
+// defaultHostFileContent
 func reinitHostFile() {
 	f, err := os.OpenFile(configPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
 	if err == nil {
@@ -69,6 +97,10 @@ func reinitHostFile() {
 	}
 }
 
+// initHostFile creates a new config file and writes the default contents from
+// defaultHostFileContent.
+//
+// If the config file already exists, nothing happens and no error is thrown.
 func initHostFile() {
 	f, err := os.OpenFile(configPath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0666)
 	if err == nil {
@@ -79,6 +111,9 @@ func initHostFile() {
 	}
 }
 
+// getHosts reads the contents of the config file and returns them as two arrays.
+// The host name in position `i` has the remote name in position `i`. The arrays
+// always have the same size.
 func getHosts() (hosts []string, remotes []string) {
 	// Start by creating and initialising the config file if it doesn't exist already.
 	initHostFile()
@@ -98,7 +133,7 @@ func getHosts() (hosts []string, remotes []string) {
 		if str == "HOST NAME,REMOTE NAME" {
 			continue
 		}
-		match := rxHost.FindStringSubmatch(str)
+		match := rxHostRemote.FindStringSubmatch(str)
 		if len(match) < 2 {
 			_, _ = fmt.Fprintf(os.Stderr, "error in host file format: %s\n", str)
 			os.Exit(1)
@@ -120,6 +155,8 @@ func getHosts() (hosts []string, remotes []string) {
 	return hosts, remotes
 }
 
+// printHosts prints to standard output the list of hosts and their remotes as
+// retrieved by getHosts.
 func printHosts() {
 	maxWidth := 0
 	for _, host := range hosts {
@@ -141,8 +178,10 @@ func printHosts() {
 	}
 }
 
+// hosts and remotes cache the results of getHosts.
 var hosts, remotes []string = getHosts()
 
+// getRemoteName maps a host name to a remote name.
 func getRemoteName(host string) string {
 	if idx := slices.Index(hosts, host); idx >= 0 {
 		return remotes[idx]
@@ -168,6 +207,11 @@ var authCodeberg = exec.Command("fj", "auth", "login", "--host", "codeberg.org")
 // authGitHub returns the command to authenticate the GitHub CLI.
 var authGitHub = exec.Command("gh", "auth", "login")
 
+// execute runs the given command.
+// Stdout and Stderr are piped to the current console's.
+//
+// If the dry variable is true, it will print the command string
+// and exit without doing anything else.
 func execute(cmd *exec.Cmd) {
 	if dry {
 		fmt.Printf("Dry run. Would have executed:\n  %s\n", strings.Join(cmd.Args, " "))
@@ -185,6 +229,8 @@ func execute(cmd *exec.Cmd) {
 	}
 }
 
+// create will assemble the commands for each repo creation and execute them,
+// skipping over any hosts that the user has omitted via `--skip <host name>`
 func create() {
 	if slices.Contains(hosts, "gitlab") {
 		cmd := createGitLab
@@ -203,6 +249,7 @@ func create() {
 	}
 }
 
+// auth assembles and executes the repo authentication commands.
 func auth() {
 	if slices.Contains(hosts, "gitlab") {
 		execute(authGitLab)
@@ -215,35 +262,51 @@ func auth() {
 	}
 }
 
-const version = "1.5.1"
+const version = "1.5.2"
 
 func printHelp() {
 	fmt.Printf("REPO v%s\nRepository Creation Utility\n\n"+
 		"Usage:\n"+
-		"  repo create [--skip <host>]\n"+
+		"  repo create [-d|--dry] [--skip <host>]\n"+
 		"    Creates a new repository on GitLab, Codeberg, and GitHub in that order.\n"+
 		"    The URL will be https://<host>/<your username>/<this directory>\n"+
-		"  repo auth\n"+
+		"    If -d or --dry, the command that would have been executed is instead\n"+
+		"    printed to the standard output, and the programme exits.\n"+
+		"    If --skip is specified, the given host will be skipped.\n\n"+
+		"  repo auth [-d|--dry] [--skip <host>]\n"+
 		"    Authenticates the CLI utilities to allow the management of repositories.\n"+
 		"    This will require you to log in to GitLab, Codeberg, and GitHub in that order.\n"+
 		"    If you've never used the hosts' CLI programmes before, you will have to do this\n"+
 		"    first. This only needs to be done once.\n"+
+		"    If -d or --dry, the command that would have been executed is instead\n"+
+		"    printed to the standard output, and the programme exits.\n"+
+		"    If --skip is specified, the given host will be skipped.\n\n"+
 		"  repo init\n"+
 		"    Re-initialises the file with the list of hosts and their remotes.\n"+
-		"    Prints the path to the file.\n"+
+		"    Prints the path to the file.\n\n"+
 		"  repo config\n"+
-		"    Opens the configuration file in the default application.\n"+
+		"    Opens the configuration file in the default application.\n\n"+
 		"  repo config path\n"+
-		"    Prints the path to the configuration file.\n"+
+		"    Prints the path to the configuration file.\n\n"+
 		"  repo hosts\n"+
-		"    Prints the list of hosts and their remote name.\n"+
-		"  repo [-h|--help]\n"+
-		"    Print this help message and exit.\n",
+		"    Prints the list of hosts and their remote name.\n\n"+
+		"Universal flags:\n"+
+		"    -h or --help: Prints this help message and exits.\n\n"+
+		"A note on host names:\n"+
+		"    You do not need to include the full URL;\n"+
+		"    `https://www.gitlab.com/` is parsed as `gitlab`\n"+
+		"    You should not name a host `-d`, `--dry`, `-h`, or `--help` and attempt to skip it.",
 		version)
 }
 
+// Removes the given host name and its remote from the variables hosts and remotes,
+// which causes create and auth to skip it.
 func skipHost(host string) error {
-	idx := slices.Index(hosts, host)
+	matches := rxHost.FindStringSubmatch(host)
+	if len(matches) < 2 {
+		return errors.New("could not parse host")
+	}
+	idx := slices.Index(hosts, matches[1])
 	if idx == -1 {
 		return errors.New("host not found")
 	}
@@ -258,7 +321,7 @@ func main() {
 		printHelp()
 		os.Exit(1)
 	}
-
+	checkFlags()
 	if arg("init") {
 		reinitHostFile()
 		fmt.Println(configPath)
@@ -288,8 +351,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	checkFlags()
-
 	if arg("auth") {
 		auth()
 		os.Exit(0)
@@ -301,14 +362,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	checkFlags()
-
 	if arg("create") {
 		next()
-		checkFlags()
 		for len(os.Args) >= 2 {
-			checkFlags()
-
 			if os.Args[0] != "--skip" {
 				printHelp()
 				os.Exit(1)
@@ -327,6 +383,4 @@ func main() {
 	if arg("hosts") {
 		printHosts()
 	}
-
-	checkFlags()
 }
