@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -78,13 +79,17 @@ func getHosts() (hosts []string, remotes []string) {
 		}
 		match := rxHost.FindStringSubmatch(str)
 		if len(match) < 2 {
-			fmt.Println(match)
+			_, _ = fmt.Fprintf(os.Stderr, "error in host file format: %s\n", str)
 			os.Exit(1)
 		}
 		hosts = append(hosts, strings.ToLower(match[1]))
 		if len(match) > 2 {
 			remotes = append(remotes, match[2])
 		} else {
+			if slices.Contains(remotes, remoteName) {
+				remoteName = fmt.Sprintf("backup%d", remoteNameBackupNumber)
+				remoteNameBackupNumber++
+			}
 			remotes = append(remotes, remoteName)
 			remoteName = fmt.Sprintf("backup%d", remoteNameBackupNumber)
 			remoteNameBackupNumber++
