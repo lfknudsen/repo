@@ -14,6 +14,7 @@ import (
 )
 
 // dry indicates whether this should be a dry-run.
+// If true, the execute function will only print the command that it would have otherwise run.
 var dry = false
 
 // arg returns true if the current command-line argument is equal to one of the given input params.
