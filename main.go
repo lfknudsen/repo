@@ -177,6 +177,10 @@ func printHelp() {
 		"  repo init\n"+
 		"    Re-initialises the file with the list of hosts and their remotes.\n"+
 		"    Prints the path to the file.\n"+
+		"  repo config\n"+
+		"    Opens the configuration file in the default application.\n"+
+		"  repo config path\n"+
+		"    Prints the path to the configuration file.\n"+
 		"  repo [-h|--help]\n"+
 		"    Print this help message and exit.\n",
 		version)
@@ -192,6 +196,23 @@ func main() {
 	if args[0] == "init" {
 		reinitHostFile()
 		fmt.Println(configPath)
+		os.Exit(0)
+	}
+
+	if args[0] == "config" {
+		if len(args) > 1 {
+			if args[1] == "path" {
+				fmt.Println(configPath)
+				os.Exit(0)
+			}
+			printHelp()
+			os.Exit(1)
+		}
+		err := open(configPath)
+		if err != nil {
+			_, _ = fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
 		os.Exit(0)
 	}
 
