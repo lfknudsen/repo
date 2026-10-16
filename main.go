@@ -92,6 +92,27 @@ func getHosts() (hosts []string, remotes []string) {
 	return hosts, remotes
 }
 
+func printHosts() {
+	maxWidth := 0
+	for _, host := range hosts {
+		if len(host) > maxWidth {
+			maxWidth = len(host)
+		}
+	}
+	const headerHost = "HOST:"
+	maxWidth += 5
+	fmt.Print(headerHost)
+	fmt.Print(strings.Repeat(" ", maxWidth-len(headerHost)))
+	const headerRemote = "REMOTE:"
+	fmt.Println(headerRemote)
+
+	for i := range hosts {
+		fmt.Print(hosts[i])
+		fmt.Print(strings.Repeat(" ", maxWidth-len(hosts[i])))
+		fmt.Println(remotes[i])
+	}
+}
+
 var hosts, remotes []string = getHosts()
 
 func getRemoteName(host string) string {
@@ -161,7 +182,7 @@ func auth() {
 	}
 }
 
-const version = "1.0.0"
+const version = "1.4.0"
 
 func printHelp() {
 	fmt.Printf("REPO v%s\nRepository Creation Utility\n\n"+
@@ -181,6 +202,8 @@ func printHelp() {
 		"    Opens the configuration file in the default application.\n"+
 		"  repo config path\n"+
 		"    Prints the path to the configuration file.\n"+
+		"  repo hosts\n"+
+		"    Prints the list of hosts and their remote name.\n"+
 		"  repo [-h|--help]\n"+
 		"    Print this help message and exit.\n",
 		version)
@@ -224,6 +247,7 @@ func main() {
 
 	if args[0] == "auth" {
 		auth()
+		os.Exit(0)
 	}
 
 	_, err := os.Stat("./.git")
@@ -239,6 +263,10 @@ func main() {
 
 	if args[0] == "create" {
 		create()
+		os.Exit(0)
 	}
 
+	if args[0] == "hosts" {
+		printHosts()
+	}
 }
