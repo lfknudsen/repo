@@ -155,7 +155,7 @@ func execute(cmd *exec.Cmd) {
 func create() {
 	if slices.Contains(hosts, "gitlab") {
 		cmd := createGitLab
-		cmd.Args = append(cmd.Args, "--remote", getRemoteName("gitlab"))
+		cmd.Args = append(cmd.Args, "--remoteName", getRemoteName("gitlab"))
 		execute(cmd)
 	}
 	if slices.Contains(hosts, "codeberg") {
