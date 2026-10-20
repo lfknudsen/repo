@@ -17,6 +17,8 @@ import (
 // If true, the execute function will only print the command that it would have otherwise run.
 var dry = false
 
+var visibility = "--private"
+
 // arg returns true if the current command-line argument is equal to one of the given input params.
 func arg(params ...string) bool {
 	return slices.Contains(params, os.Args[0])
@@ -49,6 +51,10 @@ func checkFlags() {
 	if idx != -1 {
 		printHelp()
 		os.Exit(0)
+	}
+	idx = slices.Index(os.Args, "--public")
+	if idx != -1 {
+		visibility = "--public"
 	}
 }
 
@@ -191,13 +197,13 @@ func getRemoteName(host string) string {
 }
 
 // createGitLab returns a command  to create a new remote repository hosted on gitlab.com
-var createGitLab = exec.Command("glab", "repo", "create", "--private")
+var createGitLab = exec.Command("glab", "repo", "create", visibility)
 
 // createCodeberg returns a command  to create a new remote repository hosted on Codeberg.org
-var createCodeberg = exec.Command("fj", "repo", "create", "--private", "--host", "codeberg.org", currentDir)
+var createCodeberg = exec.Command("fj", "repo", "create", visibility, "--host", "codeberg.org", currentDir)
 
 // createGitHub returns a command  to create a new remote repository hosted on GitHub.com
-var createGitHub = exec.Command("gh", "repo", "create", currentDir, "--private")
+var createGitHub = exec.Command("gh", "repo", "create", currentDir, visibility)
 
 // authGitLab returns the command to authenticate the GitLab CLI.
 var authGitLab = exec.Command("glab", "auth", "login")
@@ -268,12 +274,13 @@ const version = "1.5.2"
 func printHelp() {
 	fmt.Printf("REPO v%s\nRepository Creation Utility\n\n"+
 		"Usage:\n"+
-		"  repo create [-d|--dry] [--skip <host>]\n"+
-		"    Creates a new repository on GitLab, Codeberg, and GitHub in that order.\n"+
+		"  repo create [-d|--dry] [--skip <host>] [--public]\n"+
+		"    Creates a new private repository on GitLab, Codeberg, and GitHub in that order.\n"+
 		"    The URL will be https://<host>/<your username>/<this directory>\n"+
 		"    If -d or --dry, the command that would have been executed is instead\n"+
 		"    printed to the standard output, and the programme exits.\n"+
-		"    If --skip is specified, the given host will be skipped.\n\n"+
+		"    If --skip is specified, the given host will be skipped.\n"+
+		"	 If --public, the repository will be public instead of private.\n\n"+
 		"  repo auth [-d|--dry] [--skip <host>]\n"+
 		"    Authenticates the CLI utilities to allow the management of repositories.\n"+
 		"    This will require you to log in to GitLab, Codeberg, and GitHub in that order.\n"+
