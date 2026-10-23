@@ -324,6 +324,7 @@ func skipHost(host string) error {
 }
 
 func main() {
+	var err error
 	next()
 	if len(os.Args) == 0 {
 		printHelp()
@@ -345,7 +346,7 @@ func main() {
 			printHelp()
 			os.Exit(1)
 		}
-		err := open(configPath)
+		err = open(configPath)
 		if err != nil {
 			_, _ = fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
@@ -360,11 +361,24 @@ func main() {
 	}
 
 	if arg("auth") {
+		next()
+		for len(os.Args) >= 2 {
+			if os.Args[0] != "--skip" {
+				printHelp()
+				os.Exit(1)
+			}
+			err = skipHost(os.Args[1])
+			if err != nil {
+				_, _ = fmt.Fprintln(os.Stderr, err)
+				os.Exit(1)
+			}
+			os.Args = os.Args[2:]
+		}
 		auth()
 		os.Exit(0)
 	}
 
-	_, err := os.Stat("./.git")
+	_, err = os.Stat("./.git")
 	if err != nil {
 		fmt.Println("The current directory is not a git repository. Please run `git init` first.")
 		os.Exit(1)
