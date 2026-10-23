@@ -269,7 +269,7 @@ func auth() {
 	}
 }
 
-const version = "1.5.2"
+const version = "1.5.4"
 
 func printHelp() {
 	fmt.Printf("REPO v%s\nRepository Creation Utility\n\n"+
@@ -281,14 +281,15 @@ func printHelp() {
 		"    printed to the standard output, and the programme exits.\n"+
 		"    If --skip is specified, the given host will be skipped.\n"+
 		"	 If --public, the repository will be public instead of private.\n\n"+
-		"  repo auth [-d|--dry] [--skip <host>]\n"+
+		"  repo auth [-d|--dry] [--only <host>|--skip <host>]\n"+
 		"    Authenticates the CLI utilities to allow the management of repositories.\n"+
 		"    This will require you to log in to GitLab, Codeberg, and GitHub in that order.\n"+
 		"    If you've never used the hosts' CLI programmes before, you will have to do this\n"+
 		"    first. This only needs to be done once.\n"+
 		"    If -d or --dry, the command that would have been executed is instead\n"+
 		"    printed to the standard output, and the programme exits.\n"+
-		"    If --skip is specified, the given host will be skipped.\n\n"+
+		"    If --skip is specified, the given host will be skipped.\n"+
+		"    If --only is specified, any other hosts will be skipped.\n"+
 		"  repo init\n"+
 		"    Re-initialises the file with the list of hosts and their remotes.\n"+
 		"    Prints the path to the file.\n\n"+
@@ -320,6 +321,20 @@ func skipHost(host string) error {
 	}
 	slices.Delete(hosts, idx, idx+1)
 	slices.Delete(remotes, idx, idx+1)
+	return nil
+}
+
+func onlyHost(host string) error {
+	matches := rxHost.FindStringSubmatch(host)
+	if len(matches) < 2 {
+		return errors.New("could not parse host")
+	}
+	idx := slices.Index(hosts, matches[1])
+	if idx == -1 {
+		return errors.New("host not found")
+	}
+	hosts = []string{hosts[idx]}
+	remotes = []string{remotes[idx]}
 	return nil
 }
 
@@ -363,11 +378,15 @@ func main() {
 	if arg("auth") {
 		next()
 		for len(os.Args) >= 2 {
-			if os.Args[0] != "--skip" {
+			switch os.Args[0] {
+			case "--only":
+				err = onlyHost(os.Args[1])
+			case "--skip":
+				err = skipHost(os.Args[1])
+			default:
 				printHelp()
 				os.Exit(1)
 			}
-			err = skipHost(os.Args[1])
 			if err != nil {
 				_, _ = fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)
@@ -387,11 +406,15 @@ func main() {
 	if arg("create") {
 		next()
 		for len(os.Args) >= 2 {
-			if os.Args[0] != "--skip" {
+			switch os.Args[0] {
+			case "--only":
+				err = onlyHost(os.Args[1])
+			case "--skip":
+				err = skipHost(os.Args[1])
+			default:
 				printHelp()
 				os.Exit(1)
 			}
-			err = skipHost(os.Args[1])
 			if err != nil {
 				_, _ = fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)
