@@ -274,12 +274,13 @@ const version = "1.5.4"
 func printHelp() {
 	fmt.Printf("REPO v%s\nRepository Creation Utility\n\n"+
 		"Usage:\n"+
-		"  repo create [-d|--dry] [--skip <host>] [--public]\n"+
+		"  repo create [-d|--dry] [--only <host>|--skip <host>] [--public]\n"+
 		"    Creates a new private repository on GitLab, Codeberg, and GitHub in that order.\n"+
 		"    The URL will be https://<host>/<your username>/<this directory>\n"+
 		"    If -d or --dry, the command that would have been executed is instead\n"+
 		"    printed to the standard output, and the programme exits.\n"+
 		"    If --skip is specified, the given host will be skipped.\n"+
+		"	 If --only is specified, hosts other than the given will be skipped.\n"+
 		"	 If --public, the repository will be public instead of private.\n\n"+
 		"  repo auth [-d|--dry] [--only <host>|--skip <host>]\n"+
 		"    Authenticates the CLI utilities to allow the management of repositories.\n"+
