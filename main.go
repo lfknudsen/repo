@@ -240,16 +240,19 @@ func execute(cmd *exec.Cmd) {
 // skipping over any hosts that the user has omitted via `--skip <host name>`
 func create() {
 	if slices.Contains(hosts, "gitlab") {
+		fmt.Println("Creating GitLab project...")
 		cmd := createGitLab
 		cmd.Args = append(cmd.Args, "--remoteName", getRemoteName("gitlab"))
 		execute(cmd)
 	}
 	if slices.Contains(hosts, "codeberg") {
+		fmt.Println("Creating Codeberg project...")
 		cmd := createCodeberg
 		cmd.Args = append(cmd.Args, "--remote", getRemoteName("codeberg"))
 		execute(cmd)
 	}
 	if slices.Contains(hosts, "github") {
+		fmt.Println("Creating GitHub project...")
 		cmd := createGitHub
 		cmd.Args = append(cmd.Args, "--remote", getRemoteName("github"), "--source", ".")
 		execute(cmd)
@@ -259,12 +262,15 @@ func create() {
 // auth assembles and executes the repo authentication commands.
 func auth() {
 	if slices.Contains(hosts, "gitlab") {
+		fmt.Println("Requesting GitLab authorisation...")
 		execute(authGitLab)
 	}
 	if slices.Contains(hosts, "codeberg") {
+		fmt.Println("Requesting Codeberg authorisation...")
 		execute(authCodeberg)
 	}
 	if slices.Contains(hosts, "github") {
+		fmt.Println("Requesting GitHub authorisation...")
 		execute(authGitHub)
 	}
 }
