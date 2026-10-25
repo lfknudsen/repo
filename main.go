@@ -276,30 +276,40 @@ func printHelp() {
 		"Usage:\n"+
 		"  repo create [-d|--dry] [--only <host>|--skip <host>] [--public]\n"+
 		"    Creates a new private repository on GitLab, Codeberg, and GitHub in that order.\n"+
-		"    The URL will be https://<host>/<your username>/<this directory>\n"+
+		"    The URL will be https://<host>/<your username>/<this directory>\n\n"+
 		"    If -d or --dry, the command that would have been executed is instead\n"+
-		"    printed to the standard output, and the programme exits.\n"+
+		"      printed to the standard output, and the programme exits.\n"+
 		"    If --skip is specified, the given host will be skipped.\n"+
-		"	 If --only is specified, hosts other than the given will be skipped.\n"+
-		"	 If --public, the repository will be public instead of private.\n\n"+
+		"      Multiple --skip flags will cause all the specified hosts to be skipped.\n"+
+		"    If --only is specified, hosts other than the given will be skipped.\n"+
+		"      Only one --only can be used. --only and --skip are mutually exclusive.\n"+
+		"	 If --public, the repository will be public instead of private.\n"+
+		"-------------------------------------------------------------------------------\n"+
 		"  repo auth [-d|--dry] [--only <host>|--skip <host>]\n"+
 		"    Authenticates the CLI utilities to allow the management of repositories.\n"+
 		"    This will require you to log in to GitLab, Codeberg, and GitHub in that order.\n"+
 		"    If you've never used the hosts' CLI programmes before, you will have to do this\n"+
-		"    first. This only needs to be done once.\n"+
+		"    first. This only needs to be done once.\n\n"+
 		"    If -d or --dry, the command that would have been executed is instead\n"+
-		"    printed to the standard output, and the programme exits.\n"+
+		"      printed to the standard output, and the programme exits.\n"+
 		"    If --skip is specified, the given host will be skipped.\n"+
-		"    If --only is specified, any other hosts will be skipped.\n"+
+		"      Multiple --skip flags will cause all the specified hosts to be skipped.\n"+
+		"    If --only is specified, hosts other than the given will be skipped.\n"+
+		"      Only one --only can be used. --only and --skip are mutually exclusive.\n"+
+		"-------------------------------------------------------------------------------\n"+
 		"  repo init\n"+
 		"    Re-initialises the file with the list of hosts and their remotes.\n"+
-		"    Prints the path to the file.\n\n"+
+		"    Prints the path to the file.\n"+
+		"-------------------------------------------------------------------------------\n"+
 		"  repo config\n"+
-		"    Opens the configuration file in the default application.\n\n"+
+		"    Opens the configuration file in the default application.\n"+
+		"-------------------------------------------------------------------------------\n"+
 		"  repo config path\n"+
-		"    Prints the path to the configuration file.\n\n"+
+		"    Prints the path to the configuration file.\n"+
+		"-------------------------------------------------------------------------------\n"+
 		"  repo hosts\n"+
-		"    Prints the list of hosts and their remote name.\n\n"+
+		"    Prints the list of hosts and their remote name.\n"+
+		"-------------------------------------------------------------------------------\n"+
 		"Universal flags:\n"+
 		"    -h or --help: Prints this help message and exits.\n\n"+
 		"A note on host names:\n"+
