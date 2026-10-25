@@ -377,23 +377,7 @@ func main() {
 	}
 
 	if arg("auth") {
-		next()
-		for len(os.Args) >= 2 {
-			switch os.Args[0] {
-			case "--only":
-				err = onlyHost(os.Args[1])
-			case "--skip":
-				err = skipHost(os.Args[1])
-			default:
-				printHelp()
-				os.Exit(1)
-			}
-			if err != nil {
-				_, _ = fmt.Fprintln(os.Stderr, err)
-				os.Exit(1)
-			}
-			os.Args = os.Args[2:]
-		}
+		determineHosts()
 		auth()
 		os.Exit(0)
 	}
@@ -405,28 +389,33 @@ func main() {
 	}
 
 	if arg("create") {
-		next()
-		for len(os.Args) >= 2 {
-			switch os.Args[0] {
-			case "--only":
-				err = onlyHost(os.Args[1])
-			case "--skip":
-				err = skipHost(os.Args[1])
-			default:
-				printHelp()
-				os.Exit(1)
-			}
-			if err != nil {
-				_, _ = fmt.Fprintln(os.Stderr, err)
-				os.Exit(1)
-			}
-			os.Args = os.Args[2:]
-		}
+		determineHosts()
 		create()
 		os.Exit(0)
 	}
 
 	if arg("hosts") {
 		printHosts()
+	}
+}
+
+func determineHosts() {
+	next()
+	var err error
+	for len(os.Args) >= 2 {
+		switch os.Args[0] {
+		case "--only":
+			err = onlyHost(os.Args[1])
+		case "--skip":
+			err = skipHost(os.Args[1])
+		default:
+			printHelp()
+			os.Exit(1)
+		}
+		if err != nil {
+			_, _ = fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		os.Args = os.Args[2:]
 	}
 }
