@@ -25,14 +25,16 @@ go build
 If you haven't used the required CLI tools before, you will have to authenticate
 them with their respective host. To do this, execute
 ```
-repo auth [-d|--dry] [--skip <host name>]
+repo auth [-d|--dry] [--only <host name>] [--skip <host name>]
 ```
 Each app will take you through its process, but it should be very quick.
 
 If `-d` or `--dry`, the programme will print the commands that would have been
 executed if omitted, and then exit without actually executing them.\
 If `--skip <host name>`, the programme will skip whichever host is named.
-To skip multiple, include this argument multiple times.
+To skip multiple, include this argument multiple times.\
+If `--only <host name>`, the programme will exclusively use the specified
+host. Can only be used once.
 
 ### Configuration
 The first time the programme is run, it will generate a configuration file,
@@ -69,9 +71,12 @@ standard output.
 
 To create new repositories:
 ```
-repo create [-d|--dry] [--skip <host name>]
+repo create [-d|--dry] [--only <host name>] [--skip <host name>]
 ```
 If `-d` or `--dry`, the programme will print the commands that would have been
 executed if omitted, and then exit without actually executing them.\
 If `--skip <host name>`, the programme will skip whichever host is named.
-To skip multiple, include this argument multiple times.
+To skip multiple, include this argument multiple times.\
+If `--only <host name>`, the programme will exclusively use the specified
+host. Can only be used once, as it simply removes all other hosts from the
+pool.
