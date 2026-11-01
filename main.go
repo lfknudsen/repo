@@ -507,7 +507,7 @@ func updateDescription(description string) {
 
 func updateVisibility(visibility string) {
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Printf("Are you sure you wish to make the project \033[34m%s\033[0m?\n[y|N]\n>>> ", visibility)
+	fmt.Printf("Are you sure you wish to make the project \033[91m%s\033[0m?\n[y|N]\n>>> ", visibility)
 	text, _ := reader.ReadString('\n')
 	if text == "" {
 		os.Exit(0)
