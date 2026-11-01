@@ -307,8 +307,10 @@ func printHelp() {
 		"    If --only is specified, hosts other than the given will be skipped.\n"+
 		"      Only one --only can be used. --only and --skip are mutually exclusive.\n"+
 		"-------------------------------------------------------------------------------\n"+
-		"  repo describe <description text>\n"+
+		"  repo describe [OPTIONS] <description text>\n"+
 		"    Adds/updates the given description text to the repository.\n"+
+		"    --skip and --only work as they do with the other commands.\n"+
+		"    Aliases: desc, description.\n"+
 		"-------------------------------------------------------------------------------\n"+
 		"  repo init\n"+
 		"    Re-initialises the file with the list of hosts and their remotes.\n"+
@@ -422,7 +424,8 @@ func main() {
 		os.Exit(0)
 	}
 
-	if arg("describe") {
+	if arg("describe") || arg("desc") || arg("description") {
+		determineHosts()
 		if len(os.Args) > 1 {
 			updateDescription(os.Args[1])
 			os.Exit(0)
