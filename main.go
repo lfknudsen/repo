@@ -218,6 +218,10 @@ var descriptionGitLab = exec.Command("glab", "repo", "update", "--description")
 var descriptionCodeberg = exec.Command("fj", "repo", "edit", "--host", "codeberg.org", "--description")
 var descriptionGitHub = exec.Command("gh", "repo", "edit", "-d")
 
+var visibilityGitLab = exec.Command("glab", "api", "--silent", "-X", "PUT", "projects/:id", "--field")
+var visibilityCodeberg = exec.Command("fj", "repo", "edit", "--host", "codeberg.org", "--private")
+var visibilityGitHub = exec.Command("gh", "repo", "edit", "--accept-visibility-change-consequences", "--visibility")
+
 // execute runs the given command.
 // Stdout and Stderr are piped to the current console's.
 //
@@ -311,6 +315,12 @@ func printHelp() {
 		"    Adds/updates the given description text to the repository.\n"+
 		"    --skip and --only work as they do with the other commands.\n"+
 		"    Aliases: desc, description.\n"+
+		"-------------------------------------------------------------------------------\n"+
+		"  repo vis[ibility] [OPTIONS] public|private|internal\n"+
+		"    Updates the visibility of the repository.\n"+
+		"    --skip and --only work as they do with the other commands.\n"+
+		"    NOTE: Only GitLab and GitHub support 'internal'. CodeBerg will be skipped if\n"+
+		"    'internal' is provided for this.\n"+
 		"-------------------------------------------------------------------------------\n"+
 		"  repo init\n"+
 		"    Re-initialises the file with the list of hosts and their remotes.\n"+
@@ -426,12 +436,30 @@ func main() {
 
 	if arg("describe") || arg("desc") || arg("description") {
 		determineHosts()
-		if len(os.Args) > 1 {
-			updateDescription(os.Args[1])
+		if len(os.Args) == 1 {
+			updateDescription(os.Args[0])
 			os.Exit(0)
 		}
-		printHelp()
+		_, _ = fmt.Fprintln(os.Stderr, "Must provide a description text.")
 		os.Exit(1)
+	}
+
+	if arg("vis") || arg("visibility") {
+		determineHosts()
+		if len(os.Args) == 1 {
+			vis := strings.ToLower(os.Args[0])
+			switch vis {
+			case "public", "private", "internal":
+				updateVisibility(vis)
+				os.Exit(0)
+			default:
+				_, _ = fmt.Fprintf(os.Stderr, "Unknown visibility level '%s'. Only 'public', 'private', and 'internal' allowed.\n", vis)
+				os.Exit(1)
+			}
+		} else {
+			_, _ = fmt.Fprint(os.Stderr, "Must provide a visibility level: 'public', 'private', or 'internal'.\n")
+			os.Exit(1)
+		}
 	}
 }
 
@@ -473,6 +501,44 @@ func updateDescription(description string) {
 		fmt.Println("Updating GitHub project...")
 		cmd := descriptionGitHub
 		cmd.Args = append(cmd.Args, description)
+		execute(cmd)
+	}
+}
+
+func updateVisibility(visibility string) {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Printf("Are you sure you wish to make the project \033[34m%s\033[0m?\n[y|N]\n>>> ", visibility)
+	text, _ := reader.ReadString('\n')
+	if text == "" {
+		os.Exit(0)
+	}
+	text = strings.ToLower(strings.TrimSpace(text))
+	if text != "y" && text != "yes" {
+		os.Exit(0)
+	}
+
+	if slices.Contains(hosts, "gitlab") {
+		fmt.Println("Updating GitLab project...")
+		cmd := visibilityGitLab
+		argument := fmt.Sprintf("visibility=%s", visibility)
+		cmd.Args = append(cmd.Args, argument)
+		execute(cmd)
+	}
+	if slices.Contains(hosts, "codeberg") && visibility != "internal" {
+		// CodeBerg (Forgejo)'s command takes an argument --private true|false
+		fmt.Println("Updating Codeberg project...")
+		cmd := visibilityCodeberg
+		argument := "true"
+		if visibility == "private" {
+			argument = "false"
+		}
+		cmd.Args = append(cmd.Args, argument)
+		execute(cmd)
+	}
+	if slices.Contains(hosts, "github") {
+		fmt.Println("Updating GitHub project...")
+		cmd := visibilityGitHub
+		cmd.Args = append(cmd.Args, visibility)
 		execute(cmd)
 	}
 }
