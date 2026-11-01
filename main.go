@@ -214,6 +214,10 @@ var authCodeberg = exec.Command("fj", "auth", "login", "--host", "codeberg.org")
 // authGitHub returns the command to authenticate the GitHub CLI.
 var authGitHub = exec.Command("gh", "auth", "login")
 
+var descriptionGitLab = exec.Command("glab", "repo", "update", "--description")
+var descriptionCodeberg = exec.Command("fj", "repo", "edit", "--host", "codeberg.org", "--description")
+var descriptionGitHub = exec.Command("gh", "repo", "edit", "-d")
+
 // execute runs the given command.
 // Stdout and Stderr are piped to the current console's.
 //
@@ -302,6 +306,9 @@ func printHelp() {
 		"      Multiple --skip flags will cause all the specified hosts to be skipped.\n"+
 		"    If --only is specified, hosts other than the given will be skipped.\n"+
 		"      Only one --only can be used. --only and --skip are mutually exclusive.\n"+
+		"-------------------------------------------------------------------------------\n"+
+		"  repo describe <description text>\n"+
+		"    Adds/updates the given description text to the repository.\n"+
 		"-------------------------------------------------------------------------------\n"+
 		"  repo init\n"+
 		"    Re-initialises the file with the list of hosts and their remotes.\n"+
@@ -412,6 +419,16 @@ func main() {
 
 	if arg("hosts") {
 		printHosts()
+		os.Exit(0)
+	}
+
+	if arg("describe") {
+		if len(os.Args) > 1 {
+			updateDescription(os.Args[1])
+			os.Exit(0)
+		}
+		printHelp()
+		os.Exit(1)
 	}
 }
 
@@ -433,5 +450,26 @@ func determineHosts() {
 			os.Exit(1)
 		}
 		os.Args = os.Args[2:]
+	}
+}
+
+func updateDescription(description string) {
+	if slices.Contains(hosts, "gitlab") {
+		fmt.Println("Updating GitLab project...")
+		cmd := descriptionGitLab
+		cmd.Args = append(cmd.Args, description)
+		execute(cmd)
+	}
+	if slices.Contains(hosts, "codeberg") {
+		fmt.Println("Updating Codeberg project...")
+		cmd := descriptionCodeberg
+		cmd.Args = append(cmd.Args, description)
+		execute(cmd)
+	}
+	if slices.Contains(hosts, "github") {
+		fmt.Println("Updating GitHub project...")
+		cmd := descriptionGitHub
+		cmd.Args = append(cmd.Args, description)
+		execute(cmd)
 	}
 }
