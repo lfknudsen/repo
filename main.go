@@ -24,6 +24,13 @@ func arg(params ...string) bool {
 	return slices.Contains(params, os.Args[0])
 }
 
+const headerPrefix = "\033[94m"
+const headerSuffix = "\033[0m"
+
+func header(msg string) {
+	fmt.Printf("%s%s%s\n", headerPrefix, msg, headerSuffix)
+}
+
 // next skips past the current command-line argument.
 func next() {
 	os.Args = os.Args[1:]
@@ -248,19 +255,19 @@ func execute(cmd *exec.Cmd) {
 // skipping over any hosts that the user has omitted via `--skip <host name>`
 func create() {
 	if slices.Contains(hosts, "gitlab") {
-		fmt.Println("Creating GitLab project...")
+		header("Creating GitLab project...")
 		cmd := createGitLab
 		cmd.Args = append(cmd.Args, "--remoteName", getRemoteName("gitlab"))
 		execute(cmd)
 	}
 	if slices.Contains(hosts, "codeberg") {
-		fmt.Println("Creating Codeberg project...")
+		header("Creating Codeberg project...")
 		cmd := createCodeberg
 		cmd.Args = append(cmd.Args, "--remote", getRemoteName("codeberg"))
 		execute(cmd)
 	}
 	if slices.Contains(hosts, "github") {
-		fmt.Println("Creating GitHub project...")
+		header("Creating GitHub project...")
 		cmd := createGitHub
 		cmd.Args = append(cmd.Args, "--remote", getRemoteName("github"), "--source", ".")
 		execute(cmd)
@@ -270,15 +277,15 @@ func create() {
 // auth assembles and executes the repo authentication commands.
 func auth() {
 	if slices.Contains(hosts, "gitlab") {
-		fmt.Println("Requesting GitLab authorisation...")
+		header("Requesting GitLab authorisation...")
 		execute(authGitLab)
 	}
 	if slices.Contains(hosts, "codeberg") {
-		fmt.Println("Requesting Codeberg authorisation...")
+		header("Requesting Codeberg authorisation...")
 		execute(authCodeberg)
 	}
 	if slices.Contains(hosts, "github") {
-		fmt.Println("Requesting GitHub authorisation...")
+		header("Requesting GitHub authorisation...")
 		execute(authGitHub)
 	}
 }
@@ -486,19 +493,19 @@ func determineHosts() {
 
 func updateDescription(description string) {
 	if slices.Contains(hosts, "gitlab") {
-		fmt.Println("Updating GitLab project...")
+		header("Updating GitLab project...")
 		cmd := descriptionGitLab
 		cmd.Args = append(cmd.Args, description)
 		execute(cmd)
 	}
 	if slices.Contains(hosts, "codeberg") {
-		fmt.Println("Updating Codeberg project...")
+		header("Updating Codeberg project...")
 		cmd := descriptionCodeberg
 		cmd.Args = append(cmd.Args, description)
 		execute(cmd)
 	}
 	if slices.Contains(hosts, "github") {
-		fmt.Println("Updating GitHub project...")
+		header("Updating GitHub project...")
 		cmd := descriptionGitHub
 		cmd.Args = append(cmd.Args, description)
 		execute(cmd)
@@ -518,7 +525,7 @@ func updateVisibility(visibility string) {
 	}
 
 	if slices.Contains(hosts, "gitlab") {
-		fmt.Println("Updating GitLab project...")
+		header("Updating GitLab project...")
 		cmd := visibilityGitLab
 		argument := fmt.Sprintf("visibility=%s", visibility)
 		cmd.Args = append(cmd.Args, argument)
@@ -526,7 +533,7 @@ func updateVisibility(visibility string) {
 	}
 	if slices.Contains(hosts, "codeberg") && visibility != "internal" {
 		// CodeBerg (Forgejo)'s command takes an argument --private true|false
-		fmt.Println("Updating Codeberg project...")
+		header("Updating Codeberg project...")
 		cmd := visibilityCodeberg
 		argument := "true"
 		if visibility == "private" {
@@ -536,7 +543,7 @@ func updateVisibility(visibility string) {
 		execute(cmd)
 	}
 	if slices.Contains(hosts, "github") {
-		fmt.Println("Updating GitHub project...")
+		header("Updating GitHub project...")
 		cmd := visibilityGitHub
 		cmd.Args = append(cmd.Args, visibility)
 		execute(cmd)
