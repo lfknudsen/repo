@@ -536,7 +536,7 @@ func updateVisibility(visibility string) {
 		header("Updating Codeberg project...")
 		cmd := visibilityCodeberg
 		argument := "true"
-		if visibility == "private" {
+		if visibility == "public" {
 			argument = "false"
 		}
 		cmd.Args = append(cmd.Args, argument)
