@@ -80,3 +80,21 @@ To skip multiple, include this argument multiple times.\
 If `--only <host name>`, the programme will exclusively use the specified
 host. Can only be used once, as it simply removes all other hosts from the
 pool.
+
+### Other commands
+
+To update repository description:
+```
+repo describe [OPTIONS] <description>
+```
+
+Options are the same as for `repo create` and `repo auth`.\
+Aliases: `desc` and `description`
+
+To update repository visibility:
+```
+repo vis[ibility] [OPTIONS] public|private|internal
+```
+Options are the same as for `repo create` and `repo auth`.\
+NOTE: Only GitLab and GitHub support the 'internal' setting.\
+If this is chosen, Codeberg will be skipped.
