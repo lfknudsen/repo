@@ -98,3 +98,9 @@ repo vis[ibility] [OPTIONS] public|private|internal
 Options are the same as for `repo create` and `repo auth`.\
 NOTE: Only GitLab and GitHub support the 'internal' setting.\
 If this is chosen, Codeberg will be skipped.
+
+## See also
+
+[push](https://gitlab.com/lfknudsen/push): CLI to push to all remote repositories at once.
+
+[install](https://gitlab.com/lfknudsen/install): Easily install binaries to your PATH by moving them to the same directory as this programme's executable.
